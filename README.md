@@ -1,4 +1,4 @@
-# Canceralyze
+# Cancerian 1998 G Wok Hwayuttan % :: Google Gen AI :: #overhead of ballsto4head? nostrils are covered now .... snnnnnn... ( visualize here api ) 
 > Your Future, Our Mission: AI-Powered Cancer Detection
 
 **Submission for Google Gen AI Hackathon 2024**
