@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forge"
+version = "0.1.0"
+description = "Intent-driven code design with Bitcoin-style commitments, detached PGP signatures, and SEI settlement."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+# Deliberately empty. forge has zero runtime dependencies: the entire pipeline
+# -- canonical JSON, SHA-256d merkle trees, Keccak-256, bech32, the SEI client,
+# the REST API -- runs on the standard library alone. A build tool that signs
+# and prices artifacts should not drag a dependency tree into the trust
+# boundary it is trying to establish.
+dependencies = []
+
+[project.optional-dependencies]
+# Only needed for the optional Gemini designer, and even that speaks plain HTTP
+# through urllib, so nothing is required here either. Kept as a marker.
+gemini = []
+
+[project.scripts]
+forge = "forge.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+forge = ["py.typed"]

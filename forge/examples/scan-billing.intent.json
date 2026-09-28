@@ -1,0 +1,104 @@
+{
+  "schema": "forge.intent/v1",
+  "name": "scan_billing",
+  "objective": "Meter Canceralyze scan analyses and settle them in SEI, without ever holding a key.",
+  "rigor": "strict",
+  "metadata": {
+    "owner": "platform",
+    "relates_to": "backend/cancer"
+  },
+  "network": {
+    "nodes": [
+      {
+        "id": "scan_intake",
+        "kind": "endpoint",
+        "generator": "drf_endpoint",
+        "description": "Accepts an MRI scan for analysis and opens a billable job.",
+        "params": {
+          "route": "scans",
+          "methods": ["post"],
+          "fields": {
+            "patient_id": "uuid",
+            "modality": "str",
+            "scan": "file"
+          }
+        }
+      },
+      {
+        "id": "quote_service",
+        "kind": "service",
+        "description": "Prices an analysis job against the published SEI catalog."
+      },
+      {
+        "id": "settlement_watcher",
+        "kind": "worker",
+        "description": "Polls the chain read-only until the job's payment reference settles."
+      },
+      {
+        "id": "analysis_dispatch",
+        "kind": "gateway",
+        "description": "Releases a paid job to the inference models."
+      },
+      {
+        "id": "charge_ledger",
+        "kind": "store",
+        "description": "Append-only record of quotes, references, and settlements."
+      }
+    ],
+    "edges": [
+      {
+        "from": "scan_intake",
+        "to": "quote_service",
+        "carries": "ScanJob",
+        "constraints": {
+          "auth": "required",
+          "idempotent": true,
+          "max_bytes": 67108864,
+          "pii": true,
+          "timeout_ms": 30000
+        }
+      },
+      {
+        "from": "quote_service",
+        "to": "charge_ledger",
+        "carries": "Quote",
+        "constraints": {
+          "auth": "service",
+          "idempotent": true,
+          "retries": 3
+        }
+      },
+      {
+        "from": "quote_service",
+        "to": "settlement_watcher",
+        "carries": "PaymentReference",
+        "constraints": {
+          "auth": "service",
+          "idempotent": true,
+          "retries": 5,
+          "timeout_ms": 15000
+        }
+      },
+      {
+        "from": "settlement_watcher",
+        "to": "charge_ledger",
+        "carries": "Settlement",
+        "constraints": {
+          "auth": "service",
+          "idempotent": true,
+          "retries": 3
+        }
+      },
+      {
+        "from": "settlement_watcher",
+        "to": "analysis_dispatch",
+        "carries": "ReleaseToken",
+        "constraints": {
+          "auth": "service",
+          "idempotent": true,
+          "rate_limit": 120
+        }
+      }
+    ]
+  }
+}

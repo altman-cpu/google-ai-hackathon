@@ -1,0 +1,17 @@
+# forge runtime state: the iceberg store and generated output trees.
+.forge/
+out/
+result
+result-*
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Never commit key material or payment secrets.
+*.asc.key
+*.gpg
+secring.*
+.env
